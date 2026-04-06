@@ -46,3 +46,27 @@ window.togglePlayback = togglePlayback; window.importFile = importFile;
 window.handleFileUpload = handleFileUpload;
 
 window.onload = () => { window.setAspectRatio(); };
+function applyCustomRatio() {
+    const w = parseFloat(document.getElementById('custom-w').value);
+    const h = parseFloat(document.getElementById('custom-h').value);
+
+    if (w > 0 && h > 0) {
+        const ratio = w / h;
+        const label = w + ":" + h;
+        
+        // मुख्य फंक्शन को कॉल करें
+        window.selectRatio(ratio, label, null);
+        
+        // मोडल बंद करें
+        window.hideRatioModal();
+        
+        // इनपुट साफ करें
+        document.getElementById('custom-w').value = '';
+        document.getElementById('custom-h').value = '';
+    } else {
+        alert("कृपया सही Width और Height डालें");
+    }
+}
+
+// इसे ग्लोबल बनाएं ताकि HTML बटन इसे देख सके
+window.applyCustomRatio = applyCustomRatio;
