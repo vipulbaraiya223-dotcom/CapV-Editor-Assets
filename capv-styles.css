@@ -30,19 +30,19 @@ footer { flex-grow: 1; background: #111; border-top: 1px solid #222; display: fl
     padding: 0 !important;
 }
 
-/* एडिटर को मोबाइल की पूरी स्क्रीन पर फिट करने के लिए */
-.main-wrapper {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100vw;
-    height: 100vh;
-    z-index: 99999;
-    background: #000; /* पीछे का सफेद हिस्सा छुपाने के लिए */
-}
-
 /* ब्लॉगर की बॉडी की पैडिंग खत्म करना */
 body {
     padding: 0 !important;
     margin: 0 !important;
+}
+.main-wrapper {
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    width: 100vw !important;
+    height: 100vh !important;
+    z-index: 2147483647 !important; /* सबसे हाई लेवल */
+    background: #000 !important;
 }
