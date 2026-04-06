@@ -44,3 +44,32 @@ window.render = render; window.setAspectRatio = setAspectRatio;
 window.currentRatio = currentRatio; window.scale = scale;
 window.offsetX = offsetX; window.offsetY = offsetY;
 window.isPlaying = isPlaying;
+let initialDist = 0;
+
+container.addEventListener('touchstart', (e) => {
+    if (e.touches.length === 1) {
+        isDragging = true;
+        lastX = e.touches[0].clientX;
+        lastY = e.touches[0].clientY;
+    } else if (e.touches.length === 2) {
+        initialDist = Math.hypot(e.touches[0].pageX - e.touches[1].pageX, e.touches[0].pageY - e.touches[1].pageY);
+    }
+});
+
+container.addEventListener('touchmove', (e) => {
+    if (isDragging && e.touches.length === 1) {
+        offsetX += (e.touches[0].clientX - lastX);
+        offsetY += (e.touches[0].clientY - lastY);
+        lastX = e.touches[0].clientX;
+        lastY = e.touches[0].clientY;
+        render();
+    } else if (e.touches.length === 2) {
+        const currentDist = Math.hypot(e.touches[0].pageX - e.touches[1].pageX, e.touches[0].pageY - e.touches[1].pageY);
+        scale *= (currentDist / initialDist);
+        initialDist = currentDist;
+        render();
+    }
+});
+
+container.addEventListener('touchend', () => { isDragging = false; });
+    
