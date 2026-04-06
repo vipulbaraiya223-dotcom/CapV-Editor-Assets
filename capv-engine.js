@@ -19,20 +19,25 @@ function setAspectRatio() {
     container.style.width = dw + 'px'; container.style.height = dh + 'px';
     render();
 }
-
 function render() {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    if(video.readyState >= 2) {
-        const dw = video.videoWidth * scale, dh = video.videoHeight * scale;
+    // सिर्फ तभी ड्रा करें जब वीडियो तैयार हो या चल रहा हो
+    if (video.readyState >= 2) {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        const dw = video.videoWidth * scale;
+        const dh = video.videoHeight * scale;
+        
         ctx.save();
         ctx.translate(canvas.width/2 + offsetX, canvas.height/2 + offsetY);
+        // Image Smoothing को चालू रखें ताकि रेंडर स्मूथ हो
+        ctx.imageSmoothingEnabled = true;
+        ctx.imageSmoothingQuality = 'high';
         ctx.drawImage(video, -dw/2, -dh/2, dw, dh);
         ctx.restore();
-        if (window.updateSync) window.updateSync();
     }
-    if(isPlaying) requestAnimationFrame(render);
-}
-
+    
+    if (isPlaying) {
+        requestAnimationFrame(render);
+    }
 // Global Exports
 window.canvas = canvas; window.ctx = ctx; window.video = video;
 window.render = render; window.setAspectRatio = setAspectRatio;
