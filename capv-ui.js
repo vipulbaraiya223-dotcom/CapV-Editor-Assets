@@ -7,27 +7,26 @@ function toggleRatioModal(e) {
     if(e) e.stopPropagation(); 
     ratioModal.style.display = (ratioModal.style.display === 'block') ? 'none' : 'block'; 
 }
-function hideRatioModal() { ratioModal.style.display = 'none'; }
 
 function selectRatio(r, label) {
     window.currentRatio = r;
     const btn = document.getElementById('current-ratio-text');
     if(btn) btn.innerText = label + ' ▼';
-    window.setAspectRatio(); hideRatioModal();
+    window.setAspectRatio();
+    ratioModal.style.display = 'none';
 }
 
-window.applyCustomRatio = function() {
-    const w = parseFloat(document.getElementById('custom-w').value);
-    const h = parseFloat(document.getElementById('custom-h').value);
-    if (w > 0 && h > 0) { selectRatio(w/h, w+':'+h); }
-};
-
-function updateSync() {
-    if(playhead) playhead.style.left = (window.video.currentTime * PTS_PER_SEC) + 'px';
-    const mins = Math.floor(window.video.currentTime / 60), secs = Math.floor(window.video.currentTime % 60);
-    const frames = Math.floor((window.video.currentTime % 1) * 30);
-    const timeCode = document.getElementById('time-code');
-    if(timeCode) timeCode.innerText = `00:${mins.toString().padStart(2,'0')}:${secs.toString().padStart(2,'0')}:${frames.toString().padStart(2,'0')}`;
+function handleFileUpload(e) {
+    const file = e.target.files[0]; if(!file) return;
+    window.video.src = URL.createObjectURL(file);
+    
+    // वीडियो लोड होते ही यह हिस्सा चलेगा
+    window.video.onloadeddata = () => {
+        const w = window.video.duration * PTS_PER_SEC;
+        if(trackContainer) trackContainer.innerHTML = `<div class="video-track-clip" style="width:${w}px"><span>${file.name}</span></div>`;
+        window.setAspectRatio(); // रेशियो सेट करें
+        window.render(); // प्रीव्यू लोड करें
+    };
 }
 
 function togglePlayback() {
@@ -44,23 +43,13 @@ function togglePlayback() {
     }
 }
 
-function importFile() { document.getElementById('file-input').click(); }
-
-function handleFileUpload(e) {
-    const file = e.target.files[0]; if(!file) return;
-    window.video.src = URL.createObjectURL(file);
-    window.video.onloadedmetadata = () => {
-        const w = window.video.duration * PTS_PER_SEC;
-        if(trackContainer) trackContainer.innerHTML = `<div class="video-track-clip" style="width:${w}px; padding: 0 10px; display: flex; align-items: center; color: #fbbf24; font-size: 10px;">${file.name}</div>`;
-        window.setAspectRatio();
-        window.render();
-    };
-}
-
-// ग्लोबल फंक्शन्स
-window.toggleRatioModal = toggleRatioModal; window.hideRatioModal = hideRatioModal;
-window.selectRatio = selectRatio; window.updateSync = updateSync;
-window.togglePlayback = togglePlayback; window.importFile = importFile;
 window.handleFileUpload = handleFileUpload;
-
+window.importFile = () => document.getElementById('file-input').click();
+window.togglePlayback = togglePlayback;
+window.toggleRatioModal = toggleRatioModal;
+window.selectRatio = selectRatio;
+window.updateSync = () => {
+    if(playhead) playhead.style.left = (window.video.currentTime * PTS_PER_SEC) + 'px';
+};
 window.onload = () => { window.setAspectRatio(); };
+        
