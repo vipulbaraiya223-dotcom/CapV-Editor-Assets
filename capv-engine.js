@@ -20,19 +20,29 @@ function setAspectRatio() {
 }
 
 function render() {
-    // अगर वीडियो का डाटा मौजूद है, तभी ड्रा करें
+    // Canvas की सफाई और वीडियो की चेकिंग
     if(video.readyState >= 2) {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
-        const dw = video.videoWidth * scale, dh = video.videoHeight * scale;
+        
+        // वीडियो के असली साइज के हिसाब से ड्रा करना
+        const dw = video.videoWidth * scale;
+        const dh = video.videoHeight * scale;
+        
         ctx.save();
         ctx.translate(canvas.width/2 + offsetX, canvas.height/2 + offsetY);
-        ctx.imageSmoothingEnabled = true;
+        ctx.imageSmoothingEnabled = true; // क्वालिटी के लिए
         ctx.drawImage(video, -dw/2, -dh/2, dw, dh);
         ctx.restore();
+        
         if (window.updateSync) window.updateSync();
     }
-    if(isPlaying) requestAnimationFrame(render);
+    
+    // अगर वीडियो चल रहा है तो लगातार रेंडर करें
+    if(isPlaying) {
+        requestAnimationFrame(render);
+    }
 }
+
 
 // टच मूव कंट्रोल (वीडियो हिलाने के लिए)
 container.ontouchstart = (e) => {
