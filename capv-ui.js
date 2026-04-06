@@ -3,43 +3,41 @@ const playhead = document.getElementById('playhead'), trackContainer = document.
 const ratioModal = document.getElementById('ratio-modal-container');
 const PTS_PER_SEC = 30;
 
-function toggleRatioModal(e) { 
-    if(e) e.stopPropagation(); 
-    if(ratioModal) ratioModal.style.display = (ratioModal.style.display === 'block') ? 'none' : 'block'; 
-}
-
-function selectRatio(r, label) {
-    window.currentRatio = r;
-    const btn = document.getElementById('current-ratio-text');
-    if(btn) btn.innerText = label + ' ▼';
-    if(window.setAspectRatio) window.setAspectRatio();
-    if(ratioModal) ratioModal.style.display = 'none';
-}
+// वीडियो को मोबाइल के लिए तैयार करना
+window.video.muted = true; 
+window.video.setAttribute('webkit-playsinline', 'true');
+window.video.setAttribute('playsinline', 'true');
 
 function handleFileUpload(e) {
     const file = e.target.files[0]; 
     if(!file) return;
 
-    // मेमोरी साफ़ करने के लिए पुराना URL हटाएं
+    // पुराना डाटा साफ़ करें
     if(window.video.src) URL.revokeObjectURL(window.video.src);
     
-    window.video.src = URL.createObjectURL(file);
-    window.video.load(); // वीडियो को लोड करना शुरू करें
+    const url = URL.createObjectURL(file);
+    window.video.src = url;
+    
+    // वीडियो को "जगाना" (Force Load)
+    window.video.load();
 
-    // जब वीडियो का डाटा लोड हो जाए
-    window.video.onloadeddata = () => {
+    window.video.onloadedmetadata = function() {
         const w = window.video.duration * PTS_PER_SEC;
         if(trackContainer) {
-            trackContainer.innerHTML = `<div class="video-track-clip" style="width:${w}px; padding:10px; color:#fbbf24; font-size:10px; display:flex; align-items:center;"><span>${file.name}</span></div>`;
+            trackContainer.innerHTML = `<div class="video-track-clip" style="width:${w}px; background:rgba(251,191,36,0.3); border:1px solid #fbbf24; height:40px; display:flex; align-items:center; padding:0 10px; color:#fff; font-size:10px;">${file.name}</div>`;
         }
         
         if(window.setAspectRatio) window.setAspectRatio();
         
-        // वीडियो को थोड़ा सा आगे बढ़ाएं ताकि पहला फ्रेम लोड हो जाए (काली स्क्रीन न दिखे)
+        // वीडियो को 0.1 सेकंड पर ले जाएं ताकि पहला फ्रेम दिखे
         window.video.currentTime = 0.1;
     };
 
-    // जब वीडियो फ्रेम पर पहुँच जाए, तब रेंडर करें
+    window.video.oncanplay = () => {
+        if(window.render) window.render();
+    };
+    
+    // अगर वीडियो अटक जाए तो यह उसे खींच कर लाएगा
     window.video.onseeked = () => {
         if(window.render) window.render();
     };
@@ -47,42 +45,41 @@ function handleFileUpload(e) {
 
 function togglePlayback() {
     if(!window.video.src) return;
+    
     if(window.isPlaying) { 
         window.video.pause(); 
         window.isPlaying = false; 
         if(playBtn) playBtn.innerHTML = '▶'; 
     } else { 
+        // मोबाइल पर अनम्यूट करके चलाना
+        window.video.muted = false; 
         window.video.play().then(() => { 
             window.isPlaying = true; 
             if(playBtn) playBtn.innerHTML = '⏸'; 
             if(window.render) window.render(); 
-        }).catch(err => console.log("Play error:", err)); 
+        }).catch(err => {
+            console.log("Play failed:", err);
+            // अगर एरर आए तो म्यूट करके फिर से कोशिश करें
+            window.video.muted = true;
+            window.video.play();
+        }); 
     }
 }
 
-// ग्लोबल फंक्शन्स
+// बाकी फंक्शन वैसे ही रहेंगे
 window.handleFileUpload = handleFileUpload;
-window.importFile = () => {
-    const input = document.getElementById('file-input');
-    if(input) input.click();
-};
+window.importFile = () => document.getElementById('file-input').click();
 window.togglePlayback = togglePlayback;
-window.toggleRatioModal = toggleRatioModal;
-window.selectRatio = selectRatio;
-
+window.toggleRatioModal = (e) => {
+    if(e) e.stopPropagation();
+    ratioModal.style.display = (ratioModal.style.display === 'block') ? 'none' : 'block';
+};
+window.selectRatio = (r, label) => {
+    window.currentRatio = r;
+    document.getElementById('current-ratio-text').innerText = label + ' ▼';
+    window.setAspectRatio();
+    ratioModal.style.display = 'none';
+};
 window.updateSync = () => {
     if(playhead) playhead.style.left = (window.video.currentTime * PTS_PER_SEC) + 'px';
-    
-    // टाइमकोड अपडेट करें
-    const timeCode = document.getElementById('time-code');
-    if(timeCode) {
-        const mins = Math.floor(window.video.currentTime / 60);
-        const secs = Math.floor(window.video.currentTime % 60);
-        const frames = Math.floor((window.video.currentTime % 1) * 30);
-        timeCode.innerText = `00:${mins.toString().padStart(2,'0')}:${secs.toString().padStart(2,'0')}:${frames.toString().padStart(2,'0')}`;
-    }
-};
-
-window.onload = () => { 
-    if(window.setAspectRatio) window.setAspectRatio(); 
 };
