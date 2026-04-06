@@ -1,3 +1,31 @@
+/* --- Master Overrider: ब्लॉगर की सीमाओं को तोड़ना --- */
+html, body {
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow: hidden !important; /* स्क्रीन स्क्रॉल न हो */
+    background-color: #000 !important;
+}
+
+/* एडिटर को सबसे ऊपर और फुल स्क्रीन बनाना */
+.main-wrapper {
+    position: fixed !important; 
+    top: 0 !important;
+    left: 0 !important;
+    width: 100vw !important;
+    height: 100vh !important;
+    z-index: 9999999 !important; /* सबसे हाई लेयर */
+    display: flex !important;
+    flex-direction: column !important;
+    background: #000 !important;
+}
+
+/* ब्लॉगर के उन सफ़ेद डब्बों और तीरों को गायब करना */
+.status-msg-wrap, .blog-pager, .post-footer, .comments, .sidebar-wrapper, .date-header, .header-outer, .footer-outer, .upper-wrapper {
+    display: none !important;
+    height: 0 !important;
+    visibility: hidden !important;
+}
+
 body { background: #000; color: #eee; overflow: hidden; touch-action: none; font-family: 'Inter', sans-serif; margin: 0; padding: 0; }
 .main-wrapper { display: flex; flex-direction: column; height: 100vh; width: 100vw; }
 header { height: 45px; background: #111; border-bottom: 1px solid #222; display: flex; align-items: center; justify-content: space-between; padding: 0 15px; z-index: 100; position: relative; }
@@ -34,15 +62,4 @@ footer { flex-grow: 1; background: #111; border-top: 1px solid #222; display: fl
 body {
     padding: 0 !important;
     margin: 0 !important;
-}
-.main-wrapper {
-    position: fixed !important;
-    top: 0 !important;
-    left: 0 !important;
-    right: 0 !important;
-    bottom: 0 !important;
-    width: 100vw !important;
-    height: 100vh !important;
-    z-index: 2147483647 !important; /* सबसे हाई लेवल */
-    background: #000 !important;
 }
