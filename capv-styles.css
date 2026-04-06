@@ -22,3 +22,27 @@ footer { flex-grow: 1; background: #111; border-top: 1px solid #222; display: fl
 #timeline-ruler { position: relative; height: 30px; background: #151515; border-bottom: 1px solid #222; min-width: 10000px; }
 .video-track-clip { position: relative; height: 45px; background: rgba(251, 191, 36, 0.15); border: 1px solid rgba(251, 191, 36, 0.4); border-radius: 4px; display: flex; align-items: center; }
 #playhead { position: absolute; top: 0; left: 0; width: 2px; height: 100%; background: #ff4d4d; z-index: 100; pointer-events: none; }
+/* ब्लॉगर के फालतू हिस्से छुपाने के लिए */
+#header-wrapper, .header-outer, .footer-outer, .blog-pager, .post-footer, .comments, .sidebar-wrapper, .date-header {
+    display: none !important;
+    height: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+/* एडिटर को मोबाइल की पूरी स्क्रीन पर फिट करने के लिए */
+.main-wrapper {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    z-index: 99999;
+    background: #000; /* पीछे का सफेद हिस्सा छुपाने के लिए */
+}
+
+/* ब्लॉगर की बॉडी की पैडिंग खत्म करना */
+body {
+    padding: 0 !important;
+    margin: 0 !important;
+}
