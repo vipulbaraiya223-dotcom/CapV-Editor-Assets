@@ -1,23 +1,23 @@
 const canvas = document.getElementById('main-canvas');
-const ctx = canvas.getContext('2d', { alpha: false }); // Fast rendering
+const ctx = canvas.getContext('2d', { alpha: false });
 const video = document.createElement('video');
 const container = document.getElementById('canvas-container');
 const wrapper = document.getElementById('preview-wrapper');
 
 let isPlaying = false, scale = 1, offsetX = 0, offsetY = 0;
 let isDragging = false, lastX = 0, lastY = 0, initialDist = 0;
-window.currentRatio = 9/16;
+window.currentRatio = 9/16; // ग्लोबल वेरिएबल
 
 video.setAttribute('playsinline', 'true');
 video.setAttribute('webkit-playsinline', 'true');
-video.muted = true; // मोबाइल ब्राउज़र के लिए अनिवार्य
+video.muted = true;
 
 function setAspectRatio() {
-    if (!wrapper) return;
+    if (!wrapper || !container) return;
     const maxW = wrapper.clientWidth - 40;
     const maxH = wrapper.clientHeight - 40;
     
-    // Canvas resolution (High Quality)
+    // Canvas की क्वालिटी सेट करें
     canvas.width = 1080; 
     canvas.height = 1080 / window.currentRatio;
     
@@ -30,11 +30,14 @@ function setAspectRatio() {
     
     container.style.width = dw + 'px';
     container.style.height = dh + 'px';
+    
+    // फ्रेम दिखने के लिए तुरंत रेंडर करें
     render();
 }
 
 function render() {
-    ctx.fillStyle = "#000";
+    if (!ctx) return;
+    ctx.fillStyle = "#111"; // डिफ़ॉल्ट बैकग्राउंड कलर
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
     if (video.readyState >= 2) {
@@ -51,7 +54,7 @@ function render() {
     if (isPlaying) requestAnimationFrame(render);
 }
 
-// फ्री मूव और ज़ूम (Touch Events)
+// टच इवेंट्स (Zoom & Move)
 container.addEventListener('touchstart', (e) => {
     if (e.touches.length === 1) {
         isDragging = true;
@@ -84,3 +87,5 @@ container.addEventListener('touchend', () => { isDragging = false; });
 window.video = video; 
 window.render = render; 
 window.setAspectRatio = setAspectRatio;
+window.isPlaying = isPlaying;
+
