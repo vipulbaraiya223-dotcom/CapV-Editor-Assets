@@ -1,39 +1,58 @@
-const canvas = document.getElementById('main-canvas'), ctx = canvas.getContext('2d');
+const canvas = document.getElementById('main-canvas');
+const ctx = canvas.getContext('2d', { alpha: false }); // Fast rendering
 const video = document.createElement('video');
-const container = document.getElementById('canvas-container'), wrapper = document.getElementById('preview-wrapper');
+const container = document.getElementById('canvas-container');
+const wrapper = document.getElementById('preview-wrapper');
 
 let isPlaying = false, scale = 1, offsetX = 0, offsetY = 0;
 let isDragging = false, lastX = 0, lastY = 0, initialDist = 0;
-window.currentRatio = 9/16; 
+window.currentRatio = 9/16;
 
-video.setAttribute('playsinline', '');
+video.setAttribute('playsinline', 'true');
 video.setAttribute('webkit-playsinline', 'true');
+video.muted = true; // मोबाइल ब्राउज़र के लिए अनिवार्य
 
 function setAspectRatio() {
-    const maxW = wrapper.clientWidth - 40, maxH = wrapper.clientHeight - 40;
-    canvas.width = 1920; canvas.height = 1920 / window.currentRatio;
+    if (!wrapper) return;
+    const maxW = wrapper.clientWidth - 40;
+    const maxH = wrapper.clientHeight - 40;
+    
+    // Canvas resolution (High Quality)
+    canvas.width = 1080; 
+    canvas.height = 1080 / window.currentRatio;
+    
     let dw, dh;
-    if (maxW / window.currentRatio <= maxH) { dw = maxW; dh = maxW / window.currentRatio; } 
-    else { dh = maxH; dw = maxH * window.currentRatio; }
-    container.style.width = dw + 'px'; container.style.height = dh + 'px';
+    if (maxW / window.currentRatio <= maxH) {
+        dw = maxW; dh = maxW / window.currentRatio;
+    } else {
+        dh = maxH; dw = maxH * window.currentRatio;
+    }
+    
+    container.style.width = dw + 'px';
+    container.style.height = dh + 'px';
     render();
 }
 
 function render() {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    if(video.readyState >= 2) {
-        const dw = video.videoWidth * scale, dh = video.videoHeight * scale;
+    ctx.fillStyle = "#000";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    if (video.readyState >= 2) {
+        const dw = video.videoWidth * scale;
+        const dh = video.videoHeight * scale;
+        
         ctx.save();
-        ctx.translate(canvas.width/2 + offsetX, canvas.height/2 + offsetY);
-        ctx.drawImage(video, -dw/2, -dh/2, dw, dh);
+        ctx.translate(canvas.width / 2 + offsetX, canvas.height / 2 + offsetY);
+        ctx.drawImage(video, -dw / 2, -dh / 2, dw, dh);
         ctx.restore();
-        if (window.updateSync) window.updateSync();
     }
-    if(isPlaying) requestAnimationFrame(render);
+    
+    if (window.updateSync) window.updateSync();
+    if (isPlaying) requestAnimationFrame(render);
 }
 
-// --- फ्री मूव और ज़ूम कोड ---
-container.ontouchstart = (e) => {
+// फ्री मूव और ज़ूम (Touch Events)
+container.addEventListener('touchstart', (e) => {
     if (e.touches.length === 1) {
         isDragging = true;
         lastX = e.touches[0].clientX;
@@ -41,12 +60,14 @@ container.ontouchstart = (e) => {
     } else if (e.touches.length === 2) {
         initialDist = Math.hypot(e.touches[0].pageX - e.touches[1].pageX, e.touches[0].pageY - e.touches[1].pageY);
     }
-};
+}, { passive: false });
 
-container.ontouchmove = (e) => {
+container.addEventListener('touchmove', (e) => {
     if (isDragging && e.touches.length === 1) {
-        offsetX += (e.touches[0].clientX - lastX) * (canvas.width / container.clientWidth);
-        offsetY += (e.touches[0].clientY - lastY) * (canvas.height / container.clientHeight);
+        const rect = container.getBoundingClientRect();
+        const factor = canvas.width / rect.width;
+        offsetX += (e.touches[0].clientX - lastX) * factor;
+        offsetY += (e.touches[0].clientY - lastY) * factor;
         lastX = e.touches[0].clientX;
         lastY = e.touches[0].clientY;
         render();
@@ -56,9 +77,10 @@ container.ontouchmove = (e) => {
         initialDist = currentDist;
         render();
     }
-};
+}, { passive: false });
 
-container.ontouchend = () => { isDragging = false; initialDist = 0; };
+container.addEventListener('touchend', () => { isDragging = false; });
 
-window.video = video; window.render = render; window.setAspectRatio = setAspectRatio;
-    
+window.video = video; 
+window.render = render; 
+window.setAspectRatio = setAspectRatio;
