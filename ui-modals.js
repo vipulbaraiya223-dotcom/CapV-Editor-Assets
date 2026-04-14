@@ -1,6 +1,6 @@
 // --- ui-modals.js ---
 const UIModals = {
-    // 1. सभी राशियों की लिस्ट (जोड़ी गई)
+    // 1. सभी राशियों की लिस्ट
     ratios: [
         { label: "9:16", value: 9/16 },
         { label: "16:9", value: 16/9 },
@@ -10,7 +10,6 @@ const UIModals = {
         { label: "21:9", value: 21/9 }
     ],
 
-    // रेशियो मोडल को खोलने या बंद करने का फंक्शन
     toggleRatioModal() {
         const m = document.getElementById('ratio-modal-container');
         if (m) {
@@ -18,7 +17,6 @@ const UIModals = {
         }
     },
 
-    // प्री-सेट रेशियो चुनने के लिए
     selectRatio(r, label) {
         window.currentRatio = r;
         const ratioText = document.getElementById('current-ratio-text');
@@ -33,7 +31,6 @@ const UIModals = {
         this.toggleRatioModal(); 
     },
 
-    // कस्टम रेशियो अप्लाई करना
     applyCustomRatio() {
         const w = parseFloat(document.getElementById('custom-w').value);
         const h = parseFloat(document.getElementById('custom-h').value);
@@ -45,24 +42,27 @@ const UIModals = {
         }
     },
 
-    // फाइल इम्पोर्ट बटन के लिए
     importFile() {
         const fileInput = document.getElementById('file-input');
         if (fileInput) fileInput.click();
     },
 
-    // फाइल अपलोड होने के बाद का लॉजिक (जैसा था वैसा ही)
+    // सुधारा गया फाइल अपलोड लॉजिक
     handleFileUpload(event) {
         const file = event.target.files[0];
         if (!file) return;
 
-        window.video.src = URL.createObjectURL(file);
-        
+        // Blob URL बनाएं और वीडियो सोर्स में डालें
+        const blobURL = URL.createObjectURL(file);
+        window.video.src = blobURL;
+
         window.video.onloadedmetadata = () => {
+            // एस्पेक्ट रेशियो रिफ्रेश करें
             if (typeof PreviewControl !== 'undefined') {
                 PreviewControl.setAspectRatio(window.currentRatio || 9/16);
             }
             
+            // टाइमलाइन पर क्लिप विज़ुअल जोड़ें
             const trackContainer = document.getElementById('track-container');
             if (trackContainer && typeof Timeline !== 'undefined') {
                 const trackWidth = window.video.duration * Timeline.PIXELS_PER_SEC;
@@ -73,7 +73,13 @@ const UIModals = {
                 
                 Timeline.drawRuler(0);
             }
-            
+
+            // काली स्क्रीन दूर करने के लिए वीडियो को 0.1 सेकंड पर ले जाएँ
+            window.video.currentTime = 0.1;
+        };
+
+        // जब वीडियो 0.1 सेकंड पर पहुँच जाए, तब प्रिव्यू रेंडर करें
+        window.video.onseeked = () => {
             if (typeof PreviewControl !== 'undefined') {
                 PreviewControl.render();
             }
@@ -81,7 +87,7 @@ const UIModals = {
     }
 };
 
-// ग्लोबल फंक्शन्स (ताकि HTML के onclick से सीधे कॉल हो सकें)
+// ग्लोबल फंक्शन्स
 window.toggleRatioModal = () => UIModals.toggleRatioModal();
 window.selectRatio = (r, l) => UIModals.selectRatio(r, l);
 window.applyCustomRatio = () => UIModals.applyCustomRatio();
