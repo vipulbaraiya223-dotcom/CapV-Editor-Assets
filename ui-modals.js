@@ -1,6 +1,5 @@
 // --- ui-modals.js ---
 const UIModals = {
-    // 1. सभी राशियों की लिस्ट
     ratios: [
         { label: "9:16", value: 9/16 },
         { label: "16:9", value: 16/9 },
@@ -23,18 +22,15 @@ const UIModals = {
         if (ratioText) {
             ratioText.innerText = label + ' ▼';
         }
-        
         if (typeof PreviewControl !== 'undefined') {
             PreviewControl.setAspectRatio(r);
         }
-        
         this.toggleRatioModal(); 
     },
 
     applyCustomRatio() {
         const w = parseFloat(document.getElementById('custom-w').value);
         const h = parseFloat(document.getElementById('custom-h').value);
-        
         if (w > 0 && h > 0) {
             this.selectRatio(w / h, `${w}:${h}`);
         } else {
@@ -47,39 +43,53 @@ const UIModals = {
         if (fileInput) fileInput.click();
     },
 
-    // सुधारा गया फाइल अपलोड लॉजिक
+    // सुधारा गया फाइल अपलोड लॉजिक - इसे ध्यान से देखें
     handleFileUpload(event) {
         const file = event.target.files[0];
         if (!file) return;
 
-        // Blob URL बनाएं और वीडियो सोर्स में डालें
+        // 1. पुरानी मेमोरी साफ़ करें
+        if (window.video && window.video.src) {
+            URL.revokeObjectURL(window.video.src);
+        }
+
         const blobURL = URL.createObjectURL(file);
+        
+        // 2. वीडियो एलिमेंट को पूरी तरह रिफ्रेश करें
+        window.video.pause();
         window.video.src = blobURL;
+        window.video.load(); // ब्राउज़र को बताएं कि नया सोर्स है
 
         window.video.onloadedmetadata = () => {
-            // एस्पेक्ट रेशियो रिफ्रेश करें
+            // एस्पेक्ट रेशियो सेट करें
             if (typeof PreviewControl !== 'undefined') {
                 PreviewControl.setAspectRatio(window.currentRatio || 9/16);
             }
             
-            // टाइमलाइन पर क्लिप विज़ुअल जोड़ें
+            // टाइमलाइन पर विज़ुअल जोड़ें
             const trackContainer = document.getElementById('track-container');
             if (trackContainer && typeof Timeline !== 'undefined') {
-                const trackWidth = window.video.duration * Timeline.PIXELS_PER_SEC;
+                const trackWidth = (window.video.duration || 10) * Timeline.PIXELS_PER_SEC;
                 trackContainer.innerHTML = `
                     <div class="video-track-clip" style="width:${trackWidth}px">
                         ${file.name}
                     </div>`;
-                
                 Timeline.drawRuler(0);
             }
 
-            // काली स्क्रीन दूर करने के लिए वीडियो को 0.1 सेकंड पर ले जाएँ
+            // 3. ब्लैक स्क्रीन फिक्स: वीडियो को थोड़ा आगे बढ़ाएं ताकि पहला फ्रेम लोड हो
             window.video.currentTime = 0.1;
         };
 
-        // जब वीडियो 0.1 सेकंड पर पहुँच जाए, तब प्रिव्यू रेंडर करें
+        // 4. जैसे ही वीडियो फ्रेम तैयार हो, उसे कैनवास पर दिखाएं
         window.video.onseeked = () => {
+            if (typeof PreviewControl !== 'undefined') {
+                PreviewControl.render();
+            }
+        };
+
+        // बैकअप के लिए: अगर seeked न चले तो canplay पर ड्रा करें
+        window.video.oncanplay = () => {
             if (typeof PreviewControl !== 'undefined') {
                 PreviewControl.render();
             }
